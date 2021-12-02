@@ -19,53 +19,45 @@ def game_loop(player1, player2, rolls):
     count = 0
     p1_rounds_won = 0
     p2_rounds_won = 0
-    while count < 3:
+    p1_name = player1.name.upper()
+    p2_name = player2.name.upper()
+    while count < 3 and p1_rounds_won < 2 and p2_rounds_won < 2:
         p2_roll = random.choice(rolls)
         p1_roll = get_player_roll(rolls, player1)
 
-        outcome = p1_roll.can_defeat(p2_roll)
-
-        print(
-            f"{player2.name.capitalize()} has rolled '{p2_roll.name}'' and {player1.name.capitalize()} has rolled '{p1_roll.name}'."
-        )
-
-        if not outcome:
-            if p2_roll == p1_roll:
-                continue
-            else:
-                print(f"{player2.name.capitalize()} has won round!")
-                p2_rounds_won += 1
-        else:
-            print(f"{player1.name} has won round!")
+        outcome = check_round_winner(p1_roll, p2_roll)
+        if outcome == 'Player 1':
             p1_rounds_won += 1
+        if outcome == 'Player 2':
+            p2_rounds_won += 1
 
-        count += 1
+        print_round_results(player1, player2, p1_roll, p2_roll, outcome, count)
+        print()
 
-    print(
-        f"{player1.name} has won {p1_rounds_won} rounds and {player2.name.capitalize()} has won {p2_rounds_won} rounds."
-    )
-    if p1_rounds_won > p2_rounds_won:
-        print(f"{player1.name} has WON game!!!")
-    elif p2_rounds_won > p1_rounds_won:
-        print(f"{player2.name.capitalize()} has WON game!!!")
-    else:
-        print("Game is a TIE.")
+        if not outcome == 'Tie':
+            count += 1
+
+    print_game_results(p1_name, p1_rounds_won, p2_name, p2_rounds_won)
 
 
 def print_header():
     print(
         """
-    -------------------------------------------------
+==================================================================
+##################################################################
+
                     Rock, Paper, Scissors
-    -------------------------------------------------
+
+##################################################################
+==================================================================
     """
     )
 
 
 def build_the_three_rolls():
-    rock = Roll("rock", "scissors")
-    paper = Roll("paper", "rock")
-    scissors = Roll("scissors", "paper")
+    rock = Roll("rock", "scissors", "paper")
+    paper = Roll("paper", "rock", "scissors")
+    scissors = Roll("scissors", "paper", "rock")
 
     return rock, paper, scissors
 
@@ -77,15 +69,62 @@ def get_players_name():
 
 
 def get_player_roll(rolls, player1):
-    p1_choice = input(f"{player1.name}, do you choose (r)ock, (p)aper, (s)cissors?: ")
-    if p1_choice == "r":
-        p1_roll = rolls[0]
-    if p1_choice == "p":
-        p1_roll = rolls[1]
-    if p1_choice == "s":
-        p1_roll = rolls[2]
+    p1_name = player1.name.upper()
+    while True:
+        try:
+            p1_choice = input(f"{p1_name}, do you choose (r)ock, (p)aper, (s)cissors?: ")
 
-    return p1_roll
+            if p1_choice.lower() == "r":
+                p1_roll = rolls[0]
+            elif p1_choice.lower() == "p":
+                p1_roll = rolls[1]
+            elif p1_choice.lower() == "s":
+                p1_roll = rolls[2]
+            else:
+                print('Please provide a valid choice.')
+
+            return p1_roll
+
+        except UnboundLocalError:
+            continue
+
+
+def check_round_winner(p1_roll, p2_roll):
+    won = p1_roll.can_defeat(p2_roll)
+    lost = p1_roll.defeated_by(p2_roll)
+
+    if won:
+        return "Player 1"
+    elif lost:
+        return "Player 2"
+    else:
+        return "Tie"
+
+
+def print_round_results(player1, player2, p1_roll, p2_roll, outcome, count):
+    p1_name = player1.name.upper()
+    p2_name = player2.name.upper()
+    rnd = count + 1
+    print(
+            f"{p2_name} has rolled '{p2_roll.name}' and {p1_name} has rolled '{p1_roll.name}'."
+        )
+
+    if outcome == "Tie":
+        print("This round is a TIE.")
+    if outcome == "Player 2":
+        print(f"{p2_name} has won round {rnd}!")
+    if outcome == "Player 1":
+        print(f"{p1_name} has won round {rnd}!")
+
+
+def print_game_results(p1_name, p1_rounds_won, p2_name, p2_rounds_won):
+    print(
+        f"{p1_name} has won {p1_rounds_won} rounds and {p2_name} has won {p2_rounds_won} rounds."
+    )
+    if p1_rounds_won > p2_rounds_won:
+        print(f"{p1_name} has WON game!!!")
+    if p2_rounds_won > p1_rounds_won:
+        print(f"{p2_name} has WON game!!!")
 
 
 if __name__ == "__main__":
